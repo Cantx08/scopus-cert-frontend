@@ -32,6 +32,9 @@ jobs:
           api_location: "" # Api source code path - optional
           output_location: "" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
+        env: # <--- Añade este bloque alineado con 'with:'
+          NEXT_PUBLIC_FUNCTION_API_URL: "https://app-certificados-scopus-b9fabtd8gqavb8ge.westus3-01.azurewebsites.net/api"
+          NEXT_PUBLIC_FUNCTION_KEY: ${{ secrets.FUNCTION_KEY }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
