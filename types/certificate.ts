@@ -1,6 +1,7 @@
 export interface CertificateAuthor {
   nombres: string;
   apellidos: string;
+  titulo: string;
   genero: string;
   departamento: string;
   cargo: string;

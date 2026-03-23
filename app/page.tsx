@@ -37,6 +37,7 @@ export default function HomePage() {
     scopusIds: '',
     nombres: '',
     apellidos: '',
+    titulo: '',
     genero: 'M',
     departamento: '',
     cargo: '',
@@ -87,6 +88,7 @@ export default function HomePage() {
       author: {
         nombres: form.nombres,
         apellidos: form.apellidos,
+        titulo: form.titulo,
         genero: form.genero,
         departamento: form.departamento,
         cargo: form.cargo,
@@ -176,6 +178,17 @@ export default function HomePage() {
                 type="text"
                 value={form.apellidos}
                 onChange={(e) => updateField('apellidos', e.target.value)}
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                required
+              />
+            </label>
+            
+            <label className="space-y-1">
+              <span className="text-sm text-neutral-700">Título</span>
+              <input
+                type="text"
+                value={form.titulo}
+                onChange={(e) => updateField('titulo', e.target.value)}
                 className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
                 required
               />
