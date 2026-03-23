@@ -137,7 +137,7 @@ export default function HomePage() {
       <section className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label className="space-y-1">
+            <label className="space-y-1 md:col-span-2">
               <span className="text-sm text-neutral-700">Scopus IDs (separados por coma)</span>
               <input
                 type="text"
@@ -145,18 +145,6 @@ export default function HomePage() {
                 onChange={(e) => updateField('scopusIds', e.target.value)}
                 className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
                 placeholder="57225982800, 57201692331"
-                required
-              />
-            </label>
-
-            <label className="space-y-1">
-              <span className="text-sm text-neutral-700">Memorando</span>
-              <input
-                type="text"
-                value={form.memorando}
-                onChange={(e) => updateField('memorando', e.target.value)}
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
-                placeholder="Memo-2026-001"
                 required
               />
             </label>
@@ -206,6 +194,18 @@ export default function HomePage() {
               </select>
             </label>
 
+            <label className="space-y-1">
+              <span className="text-sm text-neutral-700">Memorando</span>
+              <input
+                type="text"
+                value={form.memorando}
+                onChange={(e) => updateField('memorando', e.target.value)}
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                placeholder="Memo-2026-001"
+                required
+              />
+            </label>
+            
             <label className="space-y-1">
               <span className="text-sm text-neutral-700">Fecha</span>
               <input
@@ -261,7 +261,7 @@ export default function HomePage() {
               />
             </label>
 
-            <label className="space-y-1 md:col-span-2">
+            <label className="space-y-1">
               <span className="text-sm text-neutral-700">Elaborado por</span>
               <input
                 type="text"
