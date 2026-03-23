@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { generateCertificate } from '@/services/certificateApi';
 import type { GenerateCertificateRequest } from '@/types/certificate';
@@ -25,13 +25,10 @@ function downloadBase64Pdf(base64: string, filename: string) {
 }
 
 export default function HomePage() {
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const [loading, setLoading] = useState(false);
   const [resultMessage, setResultMessage] = useState('');
   const [error, setError] = useState('');
-  const [todayCard, setTodayCard] = useState({
-    day: '--',
-    monthYear: '--',
-  });
 
   const [form, setForm] = useState({
     scopusIds: '',
@@ -42,27 +39,12 @@ export default function HomePage() {
     departamento: '',
     cargo: '',
     memorando: '',
-    fecha: '',
+    fecha: today,
     firmante: '',
     firmanteCargo: '',
     elaborador: '',
     isDraft: true,
   });
-
-  useEffect(() => {
-    const now = new Date();
-    const today = now.toISOString().slice(0, 10);
-
-    setForm((prev) => ({
-      ...prev,
-      fecha: prev.fecha || today,
-    }));
-
-    setTodayCard({
-      day: now.toLocaleDateString('es-ES', { day: 'numeric' }),
-      monthYear: now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }),
-    });
-  }, []);
 
   const updateField = (name: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -96,7 +78,7 @@ export default function HomePage() {
       metadata: {
         memorando: form.memorando,
         fecha: form.fecha,
-        firmante: form.firmante,
+        firmante_nombre: form.firmante,
         firmante_cargo: form.firmanteCargo,
         elaborador: form.elaborador,
       },
@@ -125,10 +107,10 @@ export default function HomePage() {
           </div>
           <div className="text-right px-6 py-4 rounded-lg bg-primary-50 border border-primary-100">
             <div className="text-primary-500 text-center text-3xl font-bold">
-              {todayCard.day}
+              {new Date().toLocaleDateString('es-ES', { day: 'numeric' })}
             </div>
             <div className="text-primary-400 font-medium">
-              {todayCard.monthYear}
+              {new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
             </div>
           </div>
         </div>

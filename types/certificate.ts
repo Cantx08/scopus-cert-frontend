@@ -10,7 +10,7 @@ export interface CertificateAuthor {
 export interface CertificateMetadata {
   memorando: string;
   fecha: string;
-  firmante: string;
+  firmante_nombre: string;
   firmante_cargo: string;
   elaborador: string;
 }
