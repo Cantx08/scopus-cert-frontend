@@ -1,9 +1,27 @@
 import { axiosInstance } from '@/lib/axios';
-import { GenerateCertificateRequest, GenerateCertificateResponse } from '@/types/certificate';
+import { 
+  GenerateCertificateRequest, 
+  GenerateCertificateResponse,
+  ExtractScopusDataRequest,
+  ExtractScopusDataResponse
+} from '@/types/certificate';
 
-export async function generateCertificate(
-  payload: GenerateCertificateRequest
-): Promise<GenerateCertificateResponse> {
-  const { data } = await axiosInstance.post<GenerateCertificateResponse>('/GenerateCertificate', payload);
-  return data;
-}
+export const extractScopusData = async (
+  data: ExtractScopusDataRequest
+): Promise<ExtractScopusDataResponse> => {
+  const response = await axiosInstance.post<ExtractScopusDataResponse>(
+    '/ExtractScopusData', 
+    data
+  );
+  return response.data;
+};
+
+export const generateCertificate = async (
+  data: GenerateCertificateRequest
+): Promise<GenerateCertificateResponse> => {
+  const response = await axiosInstance.post<GenerateCertificateResponse>(
+    '/GenerateCertificate', 
+    data
+  );
+  return response.data;
+};
