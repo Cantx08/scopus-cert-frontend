@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { generateCertificate } from '@/services/certificateApi';
 import type { GenerateCertificateRequest } from '@/types/certificate';
+import departamentosList from '@/departments.json';
+import cargosList from '@/positions.json';
 
 function downloadBase64Pdf(base64: string, filename: string) {
   const pdfBytes = atob(base64);
@@ -45,6 +47,7 @@ export default function HomePage() {
     elaborador: '',
     isDraft: true,
   });
+
 
   const updateField = (name: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -160,6 +163,7 @@ export default function HomePage() {
                 value={form.titulo}
                 onChange={(e) => updateField('titulo', e.target.value)}
                 className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                placeholder='PhD, Msc, Ing, etc.'
                 required
               />
             </label>
@@ -201,24 +205,36 @@ export default function HomePage() {
 
             <label className="space-y-1">
               <span className="text-sm text-neutral-700">Departamento</span>
-              <input
-                type="text"
+              <select
                 value={form.departamento}
                 onChange={(e) => updateField('departamento', e.target.value)}
                 className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
                 required
-              />
+              >
+                <option value="" disabled>Seleccione un departamento...</option>
+                {departamentosList.map((dept, index) => (
+                  <option key={index} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="space-y-1">
               <span className="text-sm text-neutral-700">Cargo</span>
-              <input
-                type="text"
+              <select
                 value={form.cargo}
                 onChange={(e) => updateField('cargo', e.target.value)}
                 className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
                 required
-              />
+              >
+                <option value="" disabled>Seleccione un cargo...</option>
+                {cargosList.map((position, index) => (
+                  <option key={index} value={position}>
+                    {position}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="space-y-1">
