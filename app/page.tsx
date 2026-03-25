@@ -102,10 +102,10 @@ export default function HomePage() {
       <section className="bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
         <div className="flex items-center justify-between gap-6 flex-wrap">
           <div>
-            <h2 className="text-primary-500 text-4xl font-bold mb-2">SISTEMA DE CERTIFICADOS DE PUBLICACIONES</h2>
+            <h2 className="text-primary-500 text-4xl font-bold mb-2">SISTEMA DE CERTIFICADOS SCOPUS</h2>
             <p className="text-neutral-600 text-lg">Escuela Politecnica Nacional</p>
           </div>
-          <div className="text-right px-6 py-4 rounded-lg bg-primary-50 border border-primary-100">
+          <div className="text-right px-6 py-4">
             <div className="text-primary-500 text-center text-3xl font-bold">
               {new Date().toLocaleDateString('es-ES', { day: 'numeric' })}
             </div>
