@@ -21,7 +21,16 @@ export interface Publication {
   pub_year?: string | number;
   año?: string | number;
   sjr_categories?: string;
-  [key: string]: any;
+  [key: string]: unknown;
+}
+
+export interface SubjectArea {
+  abbrev?: string;
+  name: string;
+  count: number;
+  subject_area: string;
+  documents: number;
+  [key: string]: unknown;
 }
 
 export interface ExtractScopusDataRequest {
@@ -32,14 +41,14 @@ export interface ExtractScopusDataResponse {
   mensaje: string;
   total_publicaciones: number;
   publications: Publication[];
-  subject_areas: any[];
+  subject_areas: SubjectArea[];
 }
 
 export interface GenerateCertificateRequest {
   author: CertificateAuthor;
   metadata: CertificateMetadata;
   publications: Publication[];
-  subject_areas: any[];
+  subject_areas: SubjectArea[];
   is_draft: boolean;
 }
 

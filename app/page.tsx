@@ -1,11 +1,16 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import type { AxiosError } from 'axios';
 import { Download, Loader2, Search, FileText, CheckCircle2, ChevronRight, ChevronLeft, BarChart3 } from 'lucide-react';
 import { extractScopusData, generateCertificate } from '@/services/certificateApi';
-import type { GenerateCertificateRequest, ExtractScopusDataRequest, Publication } from '@/types/certificate';
+import type { GenerateCertificateRequest, ExtractScopusDataRequest, Publication, SubjectArea } from '@/types/certificate';
 import departamentosList from '@/departments.json';
 import cargosList from '@/positions.json';
+
+interface ApiErrorPayload {
+  error?: string;
+}
 
 function downloadBase64Pdf(base64: string, filename: string) {
   const pdfBytes = atob(base64);
@@ -26,6 +31,11 @@ function downloadBase64Pdf(base64: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+function getErrorMessage(requestError: unknown, fallbackMessage: string) {
+  const axiosError = requestError as AxiosError<ApiErrorPayload>;
+  return axiosError.response?.data?.error || (requestError instanceof Error ? requestError.message : fallbackMessage);
+}
+
 export default function HomePage() {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   
@@ -38,7 +48,7 @@ export default function HomePage() {
   const [resultMessage, setResultMessage] = useState('');
   const [error, setError] = useState('');
   
-  const [extractedData, setExtractedData] = useState<{ publications: Publication[], subject_areas: any[] } | null>(null);
+  const [extractedData, setExtractedData] = useState<{ publications: Publication[], subject_areas: SubjectArea[] } | null>(null);
 
   // Estado unificado del formulario
   const [form, setForm] = useState({
@@ -89,8 +99,8 @@ export default function HomePage() {
         subject_areas: response.subject_areas
       });
       setResultMessage(`${response.mensaje}. Publicaciones detectadas: ${response.total_publicaciones}.`);
-    } catch (requestError: any) {
-      setError(requestError.response?.data?.error || requestError.message || 'No se pudieron extraer los datos.');
+    } catch (requestError: unknown) {
+      setError(getErrorMessage(requestError, 'No se pudieron extraer los datos.'));
     } finally {
       setLoadingExtract(false);
     }
@@ -137,8 +147,8 @@ export default function HomePage() {
       // Opcional: Reiniciar el flujo al terminar exitosamente
       // setStep(1);
       // setExtractedData(null);
-    } catch (requestError: any) {
-      setError(requestError.response?.data?.error || requestError.message || 'No se pudo generar el certificado.');
+    } catch (requestError: unknown) {
+      setError(getErrorMessage(requestError, 'No se pudo generar el certificado.'));
     } finally {
       setLoadingGenerate(false);
     }
@@ -147,8 +157,7 @@ export default function HomePage() {
   // Función auxiliar para calcular el máximo de áreas temáticas y graficar
   const maxSubjectCount = useMemo(() => {
     if (!extractedData?.subject_areas) return 0;
-    // Ajusta las propiedades 'count' o 'cantidad' según lo que devuelva tu API backend
-    return Math.max(...extractedData.subject_areas.map((area: any) => area.count || area.cantidad || area.value || 0));
+    return Math.max(...extractedData.subject_areas.map((area) => area.count));
   }, [extractedData]);
 
   return (
@@ -263,17 +272,15 @@ export default function HomePage() {
                 
                 {extractedData.subject_areas && extractedData.subject_areas.length > 0 ? (
                   <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-                    {extractedData.subject_areas.map((area: any, index: number) => {
-                      // Adaptar según la estructura exacta de tu API (ej. area.name, area.count)
-                      const areaName = area.name || area.area || area.nombre || `Área ${index + 1}`;
-                      const areaCount = area.count || area.cantidad || area.value || 0;
+                    {extractedData.subject_areas.map((area, index) => {
+                      const areaName = area.name || `Área ${index + 1}`;
+                      const areaCount = area.count;
                       const percentage = maxSubjectCount > 0 ? (areaCount / maxSubjectCount) * 100 : 0;
                       
                       return (
                         <div key={index} className="space-y-1">
                           <div className="flex justify-between text-xs font-medium text-neutral-700">
                             <span className="truncate pr-4">{areaName}</span>
-                            <span>{areaCount}</span>
                           </div>
                           <div className="w-full bg-neutral-100 rounded-full h-2.5">
                             <div 
