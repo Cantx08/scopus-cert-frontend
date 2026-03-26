@@ -375,31 +375,25 @@ export default function HomePage() {
                   <input required type="date" value={form.fecha} onChange={(e) => updateField('fecha', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:ring-2 focus:ring-primary-300 outline-none" />
                 </label>
 
-                <div className="col-span-1 md:col-span-2 bg-neutral-50 p-4 rounded-lg border border-neutral-200 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="col-span-1 md:col-span-2">
-                    <h4 className="text-sm font-semibold text-neutral-800 mb-2">Metadatos del Documento</h4>
-                  </div>
-                  
-                  <label className="space-y-1.5 md:col-span-2">
-                    <span className="text-sm font-medium text-neutral-700">Memorando (Opcional)</span>
-                    <input type="text" value={form.memorando} onChange={(e) => updateField('memorando', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" placeholder="Memo-2026-001" />
-                  </label>
+                <label className="space-y-1.5 md:col-span-2">
+                  <span className="text-sm font-medium text-neutral-700">Memorando (Opcional)</span>
+                  <input type="text" value={form.memorando} onChange={(e) => updateField('memorando', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" placeholder="Memo-2026-001" />
+                </label>
 
-                  <label className="space-y-1.5">
-                    <span className="text-sm font-medium text-neutral-700">Autoridad Firmante</span>
-                    <input required type="text" value={form.firmante} onChange={(e) => updateField('firmante', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" />
-                  </label>
+                <label className="space-y-1.5">
+                  <span className="text-sm font-medium text-neutral-700">Autoridad Firmante</span>
+                  <input required type="text" value={form.firmante} onChange={(e) => updateField('firmante', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" />
+                </label>
 
-                  <label className="space-y-1.5">
-                    <span className="text-sm font-medium text-neutral-700">Cargo de la Autoridad</span>
-                    <input required type="text" value={form.firmanteCargo} onChange={(e) => updateField('firmanteCargo', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" />
-                  </label>
+                <label className="space-y-1.5">
+                  <span className="text-sm font-medium text-neutral-700">Cargo de la Autoridad</span>
+                  <input required type="text" value={form.firmanteCargo} onChange={(e) => updateField('firmanteCargo', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" />
+                </label>
 
-                  <label className="space-y-1.5 md:col-span-2">
-                    <span className="text-sm font-medium text-neutral-700">Elaborado por</span>
-                    <input required type="text" value={form.elaborador} onChange={(e) => updateField('elaborador', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" />
-                  </label>
-                </div>
+                <label className="space-y-1.5 md:col-span-2">
+                  <span className="text-sm font-medium text-neutral-700">Elaborado por</span>
+                  <input required type="text" value={form.elaborador} onChange={(e) => updateField('elaborador', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" />
+                </label>
               </div>
 
               <div className="flex items-center justify-between pt-6 mt-8 border-t border-neutral-200">
