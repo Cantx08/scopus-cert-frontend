@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Download, Loader2, Search, FileText, CheckCircle2 } from 'lucide-react';
+import { Download, Loader2, Search, FileText, CheckCircle2, ChevronRight, ChevronLeft, BarChart3 } from 'lucide-react';
 import { extractScopusData, generateCertificate } from '@/services/certificateApi';
 import type { GenerateCertificateRequest, ExtractScopusDataRequest, Publication } from '@/types/certificate';
 import departamentosList from '@/departments.json';
@@ -29,6 +29,9 @@ function downloadBase64Pdf(base64: string, filename: string) {
 export default function HomePage() {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   
+  // Estado para controlar el paso actual (1: Extracción, 2: Generación)
+  const [step, setStep] = useState(1);
+
   // Estados de interfaz
   const [loadingExtract, setLoadingExtract] = useState(false);
   const [loadingGenerate, setLoadingGenerate] = useState(false);
@@ -130,6 +133,10 @@ export default function HomePage() {
       const response = await generateCertificate(payload);
       downloadBase64Pdf(response.pdf_base64, response.nombre_archivo);
       setResultMessage(response.mensaje);
+      
+      // Opcional: Reiniciar el flujo al terminar exitosamente
+      // setStep(1);
+      // setExtractedData(null);
     } catch (requestError: any) {
       setError(requestError.response?.data?.error || requestError.message || 'No se pudo generar el certificado.');
     } finally {
@@ -137,207 +144,305 @@ export default function HomePage() {
     }
   };
 
+  // Función auxiliar para calcular el máximo de áreas temáticas y graficar
+  const maxSubjectCount = useMemo(() => {
+    if (!extractedData?.subject_areas) return 0;
+    // Ajusta las propiedades 'count' o 'cantidad' según lo que devuelva tu API backend
+    return Math.max(...extractedData.subject_areas.map((area: any) => area.count || area.cantidad || area.value || 0));
+  }, [extractedData]);
+
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Encabezado */}
+    <div className="max-w-5xl mx-auto space-y-8 pb-12">
+      {/* Encabezado Principal */}
       <section className="bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
         <div className="flex items-center justify-between gap-6 flex-wrap">
           <div>
-            <h2 className="text-primary-500 text-4xl font-bold mb-2">SISTEMA DE CERTIFICADOS SCOPUS</h2>
-            <p className="text-neutral-600 text-lg">Escuela Politécnica Nacional</p>
+            <h2 className="text-primary-500 text-3xl font-bold mb-2">SISTEMA DE CERTIFICADOS SCOPUS</h2>
+            <p className="text-neutral-600">Escuela Politécnica Nacional</p>
           </div>
-          <div className="text-right px-6 py-4">
-            <div className="text-primary-500 text-center text-3xl font-bold">
-              {new Date().toLocaleDateString('es-ES', { day: 'numeric' })}
-            </div>
-            <div className="text-primary-400 font-medium">
-              {new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+          <div className="text-right px-6 py-2">
+            <div className="text-primary-500 text-center text-2xl font-bold">
+              {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
             </div>
           </div>
         </div>
       </section>
 
+      {/* Stepper / Indicador de Pasos */}
+      <div className="flex items-center justify-center space-x-4 mb-8">
+        <div className={`flex items-center space-x-2 ${step >= 1 ? 'text-primary-600' : 'text-neutral-400'}`}>
+          <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold ${step >= 1 ? 'bg-primary-100 text-primary-700' : 'bg-neutral-100'}`}>1</div>
+          <span className="font-medium">Extracción de Datos</span>
+        </div>
+        <div className={`h-1 w-16 rounded ${step >= 2 ? 'bg-primary-500' : 'bg-neutral-200'}`}></div>
+        <div className={`flex items-center space-x-2 ${step >= 2 ? 'text-primary-600' : 'text-neutral-400'}`}>
+          <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold ${step >= 2 ? 'bg-primary-100 text-primary-700' : 'bg-neutral-100'}`}>2</div>
+          <span className="font-medium">Generación de Certificado</span>
+        </div>
+      </div>
+
       {/* Alertas Globales */}
       {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
       {resultMessage && <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm">{resultMessage}</div>}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* COLUMNA IZQUIERDA: Extracción y Preview */}
-        <div className="lg:col-span-5 space-y-6">
+      {/* PASO 1: EXTRACCIÓN */}
+      {step === 1 && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
             <div className="flex items-center gap-3 mb-4">
               <Search className="h-5 w-5 text-primary-500" />
-              <h3 className="text-lg font-semibold text-neutral-800">1. Buscar Publicaciones</h3>
+              <h3 className="text-lg font-semibold text-neutral-800">Búsqueda de Publicaciones en Scopus</h3>
             </div>
             
-            <label className="space-y-1 block">
-              <span className="text-sm text-neutral-700">Scopus IDs (separados por coma)</span>
-              <input
-                type="text"
-                value={form.scopusIds}
-                onChange={(e) => updateField('scopusIds', e.target.value)}
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
-                placeholder="57225982800, 57201692331"
-              />
-            </label>
-
-            <button
-              onClick={handleExtract}
-              disabled={loadingExtract || !form.scopusIds.trim()}
-              className="mt-4 w-full inline-flex justify-center items-center gap-2 rounded-lg bg-neutral-800 px-6 py-2.5 text-white font-medium hover:bg-neutral-900 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-            >
-              {loadingExtract ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
-              {loadingExtract ? 'Buscando en Scopus...' : 'Extraer Publicaciones'}
-            </button>
+            <div className="flex gap-4 items-end">
+              <label className="space-y-1 flex-1">
+                <span className="text-sm text-neutral-700">Ingrese los Scopus IDs del autor</span>
+                <input
+                  type="text"
+                  value={form.scopusIds}
+                  onChange={(e) => updateField('scopusIds', e.target.value)}
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                  placeholder="Ej: 57225982800, 57201692331"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleExtract();
+                    }
+                  }}
+                />
+              </label>
+              <button
+                onClick={handleExtract}
+                disabled={loadingExtract || !form.scopusIds.trim()}
+                className="inline-flex justify-center items-center gap-2 rounded-lg bg-primary-500 px-6 py-2.5 text-white font-medium hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors h-[42px]"
+              >
+                {loadingExtract ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-4 w-4" />}
+                {loadingExtract ? 'Buscando...' : 'Buscar'}
+              </button>
+            </div>
           </div>
 
-          {/* Previsualización de Publicaciones */}
+          {/* Resultados de Extracción (Publicaciones + Gráfica) */}
           {extractedData && (
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 text-emerald-600">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <h3 className="text-lg font-semibold">Publicaciones Encontradas</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Lista de Publicaciones */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                <div className="flex items-center justify-between mb-4 border-b border-neutral-100 pb-3">
+                  <div className="flex items-center gap-2 text-emerald-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <h3 className="font-semibold">Publicaciones</h3>
+                  </div>
+                  <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">
+                    {extractedData.publications.length} encontradas
+                  </span>
                 </div>
-                <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">
-                  {extractedData.publications.length} items
-                </span>
-              </div>
-              
-              <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-                {extractedData.publications.map((pub, index) => (
-                  <div key={index} className="border border-neutral-200 rounded-lg p-4 hover:border-primary-300 transition-colors bg-neutral-50">
-                    <h4 className="font-semibold text-neutral-900 text-sm mb-2 line-clamp-2">
-                      {pub.pub_title || pub.titulo || "Sin título"}
-                    </h4>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-neutral-600">
-                      <div><span className="font-medium text-neutral-800">Año:</span> {pub.pub_year || pub.año}</div>
-                      <div>
-                        <span className="font-medium text-neutral-800">Q:</span>{' '}
-                        <span className={pub.sjr_categories !== "N/A" ? "text-emerald-600 font-medium" : "text-neutral-500"}>
-                          {pub.sjr_categories !== "N/A" ? "Indexado" : "N/A"}
+                
+                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                  {extractedData.publications.map((pub, index) => (
+                    <div key={index} className="border border-neutral-100 rounded-lg p-3 hover:border-primary-200 transition-colors bg-neutral-50/50">
+                      <h4 className="font-medium text-neutral-800 text-sm mb-1.5 line-clamp-2" title={pub.pub_title || pub.titulo}>
+                        {pub.pub_title || pub.titulo || "Sin título"}
+                      </h4>
+                      <div className="flex justify-between text-xs text-neutral-500">
+                        <span>Año: {pub.pub_year || pub.año}</span>
+                        <span className={pub.sjr_categories !== "N/A" ? "text-primary-600 font-medium" : ""}>
+                          Q: {pub.sjr_categories !== "N/A" ? "Indexado" : "N/A"}
                         </span>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Gráfica de Áreas Temáticas */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                <div className="flex items-center gap-2 mb-4 border-b border-neutral-100 pb-3 text-primary-600">
+                  <BarChart3 className="h-5 w-5" />
+                  <h3 className="font-semibold text-neutral-800">Áreas Temáticas</h3>
+                </div>
+                
+                {extractedData.subject_areas && extractedData.subject_areas.length > 0 ? (
+                  <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                    {extractedData.subject_areas.map((area: any, index: number) => {
+                      // Adaptar según la estructura exacta de tu API (ej. area.name, area.count)
+                      const areaName = area.name || area.area || area.nombre || `Área ${index + 1}`;
+                      const areaCount = area.count || area.cantidad || area.value || 0;
+                      const percentage = maxSubjectCount > 0 ? (areaCount / maxSubjectCount) * 100 : 0;
+                      
+                      return (
+                        <div key={index} className="space-y-1">
+                          <div className="flex justify-between text-xs font-medium text-neutral-700">
+                            <span className="truncate pr-4">{areaName}</span>
+                            <span>{areaCount}</span>
+                          </div>
+                          <div className="w-full bg-neutral-100 rounded-full h-2.5">
+                            <div 
+                              className="bg-primary-500 h-2.5 rounded-full transition-all duration-1000 ease-out" 
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                ) : (
+                  <div className="flex items-center justify-center h-40 text-sm text-neutral-500 italic">
+                    No se encontraron áreas temáticas.
+                  </div>
+                )}
               </div>
             </div>
           )}
-        </div>
 
-        {/* COLUMNA DERECHA: Formulario de Generación */}
-        <div className="lg:col-span-7">
-          <section className={`bg-white rounded-xl shadow-sm border border-neutral-200 p-8 transition-all duration-300 ${!extractedData ? 'opacity-60 grayscale-[50%] pointer-events-none' : ''}`}>
-            <div className="flex items-center gap-3 mb-6 border-b pb-4">
-              <FileText className="h-5 w-5 text-primary-500" />
-              <h3 className="text-lg font-semibold text-neutral-800">2. Datos del Certificado</h3>
+          {/* Botón Siguiente */}
+          <div className="flex justify-end pt-4">
+            <button
+              onClick={() => {
+                setResultMessage('');
+                setError('');
+                setStep(2);
+              }}
+              disabled={!extractedData || extractedData.publications.length === 0}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-8 py-3 text-white font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Siguiente Paso
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* PASO 2: GENERACIÓN DE CERTIFICADO */}
+      {step === 2 && (
+        <div className="animate-in fade-in slide-in-from-right-8 duration-500">
+          <section className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-4 mb-6">
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5 text-primary-500" />
+                <h3 className="text-lg font-semibold text-neutral-800">Datos del Certificado</h3>
+              </div>
+              <div className="text-sm text-neutral-500 bg-neutral-100 px-3 py-1 rounded-full font-medium">
+                {extractedData?.publications?.length} publicaciones listas
+              </div>
             </div>
 
             <form className="space-y-6" onSubmit={handleGenerate}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className="space-y-1">
-                  <span className="text-sm text-neutral-700">Nombres</span>
-                  <input required type="text" value={form.nombres} onChange={(e) => updateField('nombres', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <label className="space-y-1.5">
+                  <span className="text-sm font-medium text-neutral-700">Nombres</span>
+                  <input required type="text" value={form.nombres} onChange={(e) => updateField('nombres', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:ring-2 focus:ring-primary-300 outline-none transition-shadow" />
                 </label>
 
-                <label className="space-y-1">
-                  <span className="text-sm text-neutral-700">Apellidos</span>
-                  <input required type="text" value={form.apellidos} onChange={(e) => updateField('apellidos', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300" />
+                <label className="space-y-1.5">
+                  <span className="text-sm font-medium text-neutral-700">Apellidos</span>
+                  <input required type="text" value={form.apellidos} onChange={(e) => updateField('apellidos', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:ring-2 focus:ring-primary-300 outline-none transition-shadow" />
                 </label>
                 
-                <label className="space-y-1">
-                  <span className="text-sm text-neutral-700">Título</span>
-                  <input required type="text" value={form.titulo} onChange={(e) => updateField('titulo', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300" placeholder="PhD." />
+                <label className="space-y-1.5">
+                  <span className="text-sm font-medium text-neutral-700">Título</span>
+                  <input required type="text" value={form.titulo} onChange={(e) => updateField('titulo', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:ring-2 focus:ring-primary-300 outline-none transition-shadow" placeholder="PhD." />
                 </label>
 
-                <label className="space-y-1">
-                  <span className="text-sm text-neutral-700">Género</span>
-                  <select value={form.genero} onChange={(e) => updateField('genero', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300">
+                <label className="space-y-1.5">
+                  <span className="text-sm font-medium text-neutral-700">Género</span>
+                  <select value={form.genero} onChange={(e) => updateField('genero', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:ring-2 focus:ring-primary-300 outline-none bg-white">
                     <option value="M">Masculino</option>
                     <option value="F">Femenino</option>
                   </select>
                 </label>
 
-                <label className="space-y-1 md:col-span-2">
-                  <span className="text-sm text-neutral-700">Departamento</span>
+                <label className="space-y-1.5 md:col-span-2">
+                  <span className="text-sm font-medium text-neutral-700">Departamento</span>
                   <select
                     value={form.departamento}
                     onChange={(e) => updateField('departamento', e.target.value)}
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                    className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white"
                     required
                   >
                     <option value="" disabled>Seleccione un departamento...</option>
                     {departamentosList.map((dept, index) => (
-                      <option key={index} value={dept}>
-                        {dept}
-                      </option>
+                      <option key={index} value={dept}>{dept}</option>
                     ))}
                   </select>
                 </label>
 
-                <label className="space-y-1">
-                  <span className="text-sm text-neutral-700">Cargo</span>
+                <label className="space-y-1.5">
+                  <span className="text-sm font-medium text-neutral-700">Cargo</span>
                   <select
                     value={form.cargo}
                     onChange={(e) => updateField('cargo', e.target.value)}
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                    className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white"
                     required
                   >
                     <option value="" disabled>Seleccione un cargo...</option>
                     {cargosList.map((position, index) => (
-                      <option key={index} value={position}>
-                        {position}
-                      </option>
+                      <option key={index} value={position}>{position}</option>
                     ))}
                   </select>
                 </label>
 
-                <label className="space-y-1">
-                  <span className="text-sm text-neutral-700">Fecha del Certificado</span>
-                  <input required type="date" value={form.fecha} onChange={(e) => updateField('fecha', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300" />
+                <label className="space-y-1.5">
+                  <span className="text-sm font-medium text-neutral-700">Fecha del Certificado</span>
+                  <input required type="date" value={form.fecha} onChange={(e) => updateField('fecha', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:ring-2 focus:ring-primary-300 outline-none" />
                 </label>
 
-                <label className="space-y-1 md:col-span-2">
-                  <span className="text-sm text-neutral-700">Memorando (Opcional)</span>
-                  <input type="text" value={form.memorando} onChange={(e) => updateField('memorando', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300" placeholder="Memo-2026-001" />
-                </label>
+                <div className="col-span-1 md:col-span-2 bg-neutral-50 p-4 rounded-lg border border-neutral-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="col-span-1 md:col-span-2">
+                    <h4 className="text-sm font-semibold text-neutral-800 mb-2">Metadatos del Documento</h4>
+                  </div>
+                  
+                  <label className="space-y-1.5 md:col-span-2">
+                    <span className="text-sm font-medium text-neutral-700">Memorando (Opcional)</span>
+                    <input type="text" value={form.memorando} onChange={(e) => updateField('memorando', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" placeholder="Memo-2026-001" />
+                  </label>
 
-                <label className="space-y-1">
-                  <span className="text-sm text-neutral-700">Autoridad Firmante</span>
-                  <input required type="text" value={form.firmante} onChange={(e) => updateField('firmante', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300" />
-                </label>
+                  <label className="space-y-1.5">
+                    <span className="text-sm font-medium text-neutral-700">Autoridad Firmante</span>
+                    <input required type="text" value={form.firmante} onChange={(e) => updateField('firmante', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" />
+                  </label>
 
-                <label className="space-y-1">
-                  <span className="text-sm text-neutral-700">Cargo de la Autoridad</span>
-                  <input required type="text" value={form.firmanteCargo} onChange={(e) => updateField('firmanteCargo', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300" />
-                </label>
+                  <label className="space-y-1.5">
+                    <span className="text-sm font-medium text-neutral-700">Cargo de la Autoridad</span>
+                    <input required type="text" value={form.firmanteCargo} onChange={(e) => updateField('firmanteCargo', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" />
+                  </label>
 
-                <label className="space-y-1 md:col-span-2">
-                  <span className="text-sm text-neutral-700">Elaborado por</span>
-                  <input required type="text" value={form.elaborador} onChange={(e) => updateField('elaborador', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300" />
-                </label>
+                  <label className="space-y-1.5 md:col-span-2">
+                    <span className="text-sm font-medium text-neutral-700">Elaborado por</span>
+                    <input required type="text" value={form.elaborador} onChange={(e) => updateField('elaborador', e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:ring-2 focus:ring-primary-300 outline-none" />
+                  </label>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4 mt-6 border-t border-neutral-100">
-                <label className="inline-flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
-                  <input type="checkbox" checked={form.isDraft} onChange={(e) => updateField('isDraft', e.target.checked)} className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded" />
-                  Generar como borrador
-                </label>
-
+              <div className="flex items-center justify-between pt-6 mt-8 border-t border-neutral-200">
                 <button
-                  type="submit"
-                  disabled={loadingGenerate || !extractedData}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-6 py-3 text-white font-medium hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="inline-flex items-center gap-2 text-neutral-600 hover:text-neutral-900 font-medium px-4 py-2 rounded-lg hover:bg-neutral-100 transition-colors"
                 >
-                  {loadingGenerate ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}
-                  {loadingGenerate ? 'Generando PDF...' : 'Generar Certificado'}
+                  <ChevronLeft className="h-5 w-5" />
+                  Atrás
                 </button>
+
+                <div className="flex items-center gap-6">
+                  <label className="inline-flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+                    <input type="checkbox" checked={form.isDraft} onChange={(e) => updateField('isDraft', e.target.checked)} className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded cursor-pointer" />
+                    Generar como borrador
+                  </label>
+
+                  <button
+                    type="submit"
+                    disabled={loadingGenerate}
+                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-8 py-3 text-white font-medium hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  >
+                    {loadingGenerate ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}
+                    {loadingGenerate ? 'Generando PDF...' : 'Generar Certificado'}
+                  </button>
+                </div>
               </div>
             </form>
           </section>
         </div>
-      </div>
+      )}
     </div>
   );
 }
