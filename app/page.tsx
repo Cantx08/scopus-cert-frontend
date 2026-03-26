@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { AxiosError } from 'axios';
-import { Download, Loader2, Search, FileText, CheckCircle2, ChevronRight, ChevronLeft, BarChart3 } from 'lucide-react';
+import { Download, Loader2, Search, FileText, ChevronRight, ChevronLeft, BarChart3 } from 'lucide-react';
 import { extractScopusData, generateCertificate } from '@/services/certificateApi';
 import type { GenerateCertificateRequest, ExtractScopusDataRequest, Publication, SubjectArea } from '@/types/certificate';
 import departamentosList from '@/departments.json';
@@ -154,12 +154,6 @@ export default function HomePage() {
     }
   };
 
-  // Función auxiliar para calcular el máximo de áreas temáticas y graficar
-  const maxSubjectCount = useMemo(() => {
-    if (!extractedData?.subject_areas) return 0;
-    return Math.max(...extractedData.subject_areas.map((area) => area.count));
-  }, [extractedData]);
-
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">
       {/* Encabezado Principal */}
@@ -194,7 +188,7 @@ export default function HomePage() {
       {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
       {resultMessage && <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm">{resultMessage}</div>}
 
-      {/* PASO 1: EXTRACCIÓN */}
+      {/* Extracción de Publicaciones */}
       {step === 1 && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
@@ -223,7 +217,7 @@ export default function HomePage() {
               <button
                 onClick={handleExtract}
                 disabled={loadingExtract || !form.scopusIds.trim()}
-                className="inline-flex justify-center items-center gap-2 rounded-lg bg-primary-500 px-6 py-2.5 text-white font-medium hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors h-[42px]"
+                className="inline-flex justify-center items-center gap-2 rounded-lg bg-primary-500 px-6 py-2.5 text-white font-medium hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors h-10.5"
               >
                 {loadingExtract ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-4 w-4" />}
                 {loadingExtract ? 'Buscando...' : 'Buscar'}
@@ -231,22 +225,18 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Resultados de Extracción (Publicaciones + Gráfica) */}
+          {/* Resultados de Extracción (Publicaciones y áreas Temáticas) */}
           {extractedData && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Lista de Publicaciones */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
                 <div className="flex items-center justify-between mb-4 border-b border-neutral-100 pb-3">
                   <div className="flex items-center gap-2 text-emerald-600">
-                    <CheckCircle2 className="h-5 w-5" />
-                    <h3 className="font-semibold">Publicaciones</h3>
+                    <h3 className="font-semibold">{extractedData.publications.length} Publicaciones encontradas</h3>
                   </div>
-                  <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">
-                    {extractedData.publications.length} encontradas
-                  </span>
                 </div>
                 
-                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-3 max-h-87.5 overflow-y-auto pr-2 custom-scrollbar">
                   {extractedData.publications.map((pub, index) => (
                     <div key={index} className="border border-neutral-100 rounded-lg p-3 hover:border-primary-200 transition-colors bg-neutral-50/50">
                       <h4 className="font-medium text-neutral-800 text-sm mb-1.5 line-clamp-2" title={pub.pub_title || pub.titulo}>
@@ -254,8 +244,8 @@ export default function HomePage() {
                       </h4>
                       <div className="flex justify-between text-xs text-neutral-500">
                         <span>Año: {pub.pub_year || pub.año}</span>
-                        <span className={pub.sjr_categories !== "N/A" ? "text-primary-600 font-medium" : ""}>
-                          Q: {pub.sjr_categories !== "N/A" ? "Indexado" : "N/A"}
+                        <span className={pub.source_title !== "N/A" ? "text-primary-600 font-medium" : ""}>
+                          Fuente: {pub.source_title !== "N/A" ? pub.source_title : "N/A"}
                         </span>
                       </div>
                     </div>
@@ -263,7 +253,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Gráfica de Áreas Temáticas */}
+              {/* Lista de Áreas Temáticas */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
                 <div className="flex items-center gap-2 mb-4 border-b border-neutral-100 pb-3 text-primary-600">
                   <BarChart3 className="h-5 w-5" />
@@ -271,22 +261,14 @@ export default function HomePage() {
                 </div>
                 
                 {extractedData.subject_areas && extractedData.subject_areas.length > 0 ? (
-                  <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="space-y-4 max-h-87.5 overflow-y-auto pr-2 custom-scrollbar">
                     {extractedData.subject_areas.map((area, index) => {
                       const areaName = area.name || `Área ${index + 1}`;
-                      const areaCount = area.count;
-                      const percentage = maxSubjectCount > 0 ? (areaCount / maxSubjectCount) * 100 : 0;
                       
                       return (
                         <div key={index} className="space-y-1">
                           <div className="flex justify-between text-xs font-medium text-neutral-700">
                             <span className="truncate pr-4">{areaName}</span>
-                          </div>
-                          <div className="w-full bg-neutral-100 rounded-full h-2.5">
-                            <div 
-                              className="bg-primary-500 h-2.5 rounded-full transition-all duration-1000 ease-out" 
-                              style={{ width: `${percentage}%` }}
-                            ></div>
                           </div>
                         </div>
                       );
@@ -312,7 +294,7 @@ export default function HomePage() {
               disabled={!extractedData || extractedData.publications.length === 0}
               className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-8 py-3 text-white font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Siguiente Paso
+              Siguiente
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>

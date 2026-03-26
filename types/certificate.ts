@@ -19,6 +19,7 @@ export interface Publication {
   pub_title?: string;
   titulo?: string;
   pub_year?: string | number;
+  source_title?: string;
   año?: string | number;
   sjr_categories?: string;
   [key: string]: unknown;
