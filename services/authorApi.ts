@@ -7,7 +7,7 @@ export const getAuthors = async (departamento?: string, facultad?: string): Prom
     if (departamento) params.append('departamento', departamento);
     if (facultad) params.append('facultad', facultad);
 
-    const url = `/Authors${params.toString() ? `?${params.toString()}` : ''}`;
+    const url = `/ManageAuthors${params.toString() ? `?${params.toString()}` : ''}`;
     const response = await axiosInstance.get<Author[]>(url);
     return response.data;
   } catch (error) {
