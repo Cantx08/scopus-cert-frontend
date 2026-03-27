@@ -1,12 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { AxiosError } from 'axios';
-import { Download, Loader2, Search, FileText, ChevronRight, ChevronLeft, BarChart3 } from 'lucide-react';
+import { Download, Loader2, Search, FileText, ChevronRight, ChevronLeft, BarChart3, CheckCircle2, Users } from 'lucide-react';
 import { extractScopusData, generateCertificate } from '@/services/certificateApi';
-import type { GenerateCertificateRequest, ExtractScopusDataRequest, Publication, SubjectArea } from '@/types/certificate';
+import type { GenerateCertificateRequest, ExtractScopusDataRequest, Publication, SubjectArea, Author } from '@/types/certificate';
 import departamentosList from '@/departments.json';
 import cargosList from '@/positions.json';
+import { getAuthors } from '@/services/authorApi';
 
 interface ApiErrorPayload {
   error?: string;
@@ -38,9 +39,11 @@ function getErrorMessage(requestError: unknown, fallbackMessage: string) {
 
 export default function HomePage() {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  
-  // Estado para controlar el paso actual (1: Extracción, 2: Generación)
   const [step, setStep] = useState(1);
+
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [loadingAuthors, setLoadingAuthors] = useState(true);
+  const [selectedCedula, setSelectedCedula] = useState<string>('');
 
   // Estados de interfaz
   const [loadingExtract, setLoadingExtract] = useState(false);
@@ -71,25 +74,54 @@ export default function HomePage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  useEffect(() => {
+    const fetchAuthors = async () => {
+      setLoadingAuthors(true);
+      const data = await getAuthors(); // Trae todos (puedes añadir filtros aquí luego)
+      setAuthors(data);
+      setLoadingAuthors(false);
+    };
+    fetchAuthors();
+  }, []);
+
+  const handleAuthorSelect = (cedula: string) => {
+    setSelectedCedula(cedula);
+    setError('');
+    
+    const author = authors.find(a => a.cedula === cedula);
+    if (author) {
+      // Autocompletamos todo el formulario con los datos de la base de datos
+      setForm(prev => ({
+        ...prev,
+        scopusIds: author.scopus_ids || '',
+        nombres: author.nombres || '',
+        apellidos: author.apellidos || '',
+        titulo: author.titulo || '',
+        departamento: author.departamento || '',
+        cargo: author.cargo || '',
+      }));
+    } else {
+      // Si deselecciona, limpiamos
+      setForm(prev => ({
+        ...prev, scopusIds: '', nombres: '', apellidos: '', titulo: '', departamento: '', cargo: ''
+      }));
+    }
+  };
+
   // --- 1. LÓGICA DE EXTRACCIÓN ---
   const handleExtract = async () => {
     setError('');
     setResultMessage('');
     setExtractedData(null);
 
-    const parsedIds = form.scopusIds
-      .split(',')
-      .map((id) => id.trim())
-      .filter(Boolean);
-
-    if (parsedIds.length === 0) {
-      setError('Debes ingresar al menos un Scopus ID.');
+    if (!form.scopusIds.trim()) {
+      setError('El docente seleccionado no tiene Scopus IDs registrados.');
       return;
     }
 
-    const payload: ExtractScopusDataRequest = {
-      scopus_ids: parsedIds,
-    };
+    const parsedIds = form.scopusIds.split(',').map((id) => id.trim()).filter(Boolean);
+
+    const payload: ExtractScopusDataRequest = { scopus_ids: parsedIds };
 
     try {
       setLoadingExtract(true);
@@ -99,8 +131,8 @@ export default function HomePage() {
         subject_areas: response.subject_areas
       });
       setResultMessage(`${response.mensaje}. Publicaciones detectadas: ${response.total_publicaciones}.`);
-    } catch (requestError: unknown) {
-      setError(getErrorMessage(requestError, 'No se pudieron extraer los datos.'));
+    } catch (requestError: any) {
+      setError(requestError.response?.data?.error || requestError.message || 'No se pudieron extraer los datos.');
     } finally {
       setLoadingExtract(false);
     }
@@ -154,6 +186,11 @@ export default function HomePage() {
     }
   };
 
+  const maxSubjectCount = useMemo(() => {
+    if (!extractedData?.subject_areas) return 0;
+    return Math.max(...extractedData.subject_areas.map((area: any) => area.count || area.cantidad || area.value || 0));
+  }, [extractedData]);
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">
       {/* Encabezado Principal */}
@@ -192,37 +229,49 @@ export default function HomePage() {
       {step === 1 && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
-            <div className="flex items-center gap-3 mb-4">
-              <Search className="h-5 w-5 text-primary-500" />
-              <h3 className="text-lg font-semibold text-neutral-800">Búsqueda de Publicaciones en Scopus</h3>
+            <div className="flex items-center justify-between mb-4 border-b border-neutral-100 pb-4">
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5 text-primary-500" />
+                <h3 className="text-lg font-semibold text-neutral-800">Seleccionar Docente</h3>
+              </div>
+              {loadingAuthors && <Loader2 className="h-5 w-5 animate-spin text-primary-500" />}
             </div>
             
-            <div className="flex gap-4 items-end">
-              <label className="space-y-1 flex-1">
-                <span className="text-sm text-neutral-700">Ingrese los Scopus IDs del autor</span>
-                <input
-                  type="text"
-                  value={form.scopusIds}
-                  onChange={(e) => updateField('scopusIds', e.target.value)}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-300"
-                  placeholder="Ej: 57225982800, 57201692331"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleExtract();
-                    }
-                  }}
-                />
+            <div className="flex flex-col md:flex-row gap-4 items-end">
+              <label className="space-y-1.5 flex-1 w-full">
+                <span className="text-sm font-medium text-neutral-700">Catálogo de Autores</span>
+                <select
+                  value={selectedCedula}
+                  onChange={(e) => handleAuthorSelect(e.target.value)}
+                  disabled={loadingAuthors}
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white disabled:bg-neutral-50"
+                >
+                  <option value="">-- Seleccione un docente --</option>
+                  {authors.map((author) => (
+                    <option key={author.cedula} value={author.cedula}>
+                      {author.apellidos} {author.nombres} - {author.departamento}
+                    </option>
+                  ))}
+                </select>
               </label>
+              
               <button
                 onClick={handleExtract}
-                disabled={loadingExtract || !form.scopusIds.trim()}
-                className="inline-flex justify-center items-center gap-2 rounded-lg bg-primary-500 px-6 py-2.5 text-white font-medium hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors h-10.5"
+                disabled={loadingExtract || !selectedCedula}
+                className="w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-lg bg-neutral-800 px-8 py-2.5 text-white font-medium hover:bg-neutral-900 disabled:opacity-60 disabled:cursor-not-allowed transition-colors h-[46px]"
               >
                 {loadingExtract ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-4 w-4" />}
-                {loadingExtract ? 'Buscando...' : 'Buscar'}
+                {loadingExtract ? 'Buscando...' : 'Extraer Publicaciones'}
               </button>
             </div>
+            
+            {/* Pequeño indicador de los IDs cargados en memoria */}
+            {selectedCedula && form.scopusIds && (
+               <div className="mt-3 text-xs text-neutral-500 flex items-center gap-1">
+                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                 Scopus IDs listos: {form.scopusIds}
+               </div>
+            )}
           </div>
 
           {/* Resultados de Extracción (Publicaciones y áreas Temáticas) */}

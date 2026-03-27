@@ -58,3 +58,16 @@ export interface GenerateCertificateResponse {
   pdf_base64: string;
   nombre_archivo: string;
 }
+
+export interface Author {
+  cedula: string;
+  nombres: string;
+  apellidos: string;
+  titulo: string;
+  cargo: string;
+  departamento: string;
+  facultad: string;
+  scopus_ids: string;
+}
+
+
