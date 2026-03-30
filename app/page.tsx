@@ -249,7 +249,7 @@ export default function HomePage() {
                   <option value="">-- Seleccione un docente --</option>
                   {authors.map((author) => (
                     <option key={author.cedula} value={author.cedula}>
-                      {author.apellidos} {author.nombres} - {author.departamento}
+                      {author.apellidos} {author.nombres}
                     </option>
                   ))}
                 </select>
@@ -258,23 +258,23 @@ export default function HomePage() {
               <button
                 onClick={handleExtract}
                 disabled={loadingExtract || !selectedCedula}
-                className="w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-lg bg-neutral-800 px-8 py-2.5 text-white font-medium hover:bg-neutral-900 disabled:opacity-60 disabled:cursor-not-allowed transition-colors h-[46px]"
+                className="w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-lg bg-primary-500 px-8 py-2.5 text-white font-medium hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors h-[46px]"
               >
                 {loadingExtract ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-4 w-4" />}
                 {loadingExtract ? 'Buscando...' : 'Extraer Publicaciones'}
               </button>
             </div>
             
-            {/* Pequeño indicador de los IDs cargados en memoria */}
+            {/* Indicador de Scopus IDs correspondientes al autor */}
             {selectedCedula && form.scopusIds && (
                <div className="mt-3 text-xs text-neutral-500 flex items-center gap-1">
                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                 Scopus IDs listos: {form.scopusIds}
+                 Scopus IDs: {form.scopusIds}
                </div>
             )}
           </div>
 
-          {/* Resultados de Extracción (Publicaciones y áreas Temáticas) */}
+          {/* Resultados de Extracción de publicaciones y áreas temáticas */}
           {extractedData && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Lista de Publicaciones */}
