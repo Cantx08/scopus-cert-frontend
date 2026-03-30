@@ -239,14 +239,14 @@ export default function HomePage() {
             
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <label className="space-y-1.5 flex-1 w-full">
-                <span className="text-sm font-medium text-neutral-700">Catálogo de Autores</span>
+                <span className="text-sm font-medium text-neutral-700">Lista de Docentes</span>
                 <select
                   value={selectedCedula}
                   onChange={(e) => handleAuthorSelect(e.target.value)}
                   disabled={loadingAuthors}
                   className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white disabled:bg-neutral-50"
                 >
-                  <option value="">-- Seleccione un docente --</option>
+                  <option value=""> Seleccione un docente... </option>
                   {authors.map((author) => (
                     <option key={author.cedula} value={author.cedula}>
                       {author.apellidos} {author.nombres}
@@ -274,7 +274,7 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Resultados de Extracción de publicaciones y áreas temáticas */}
+          {/* Resultados de extracción de publicaciones y áreas temáticas */}
           {extractedData && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Lista de Publicaciones */}
@@ -302,7 +302,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Lista de Áreas Temáticas */}
+              {/* Lista de áreas temáticas */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
                 <div className="flex items-center gap-2 mb-4 border-b border-neutral-100 pb-3 text-primary-600">
                   <BarChart3 className="h-5 w-5" />
@@ -350,7 +350,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* PASO 2: GENERACIÓN DE CERTIFICADO */}
+      {/* PASO 2: GENERACIÓN DEL CERTIFICADO */}
       {step === 2 && (
         <div className="animate-in fade-in slide-in-from-right-8 duration-500">
           <section className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8">
@@ -360,7 +360,7 @@ export default function HomePage() {
                 <h3 className="text-lg font-semibold text-neutral-800">Datos del Certificado</h3>
               </div>
               <div className="text-sm text-neutral-500 bg-neutral-100 px-3 py-1 rounded-full font-medium">
-                {extractedData?.publications?.length} publicaciones listas
+                {extractedData?.publications?.length} publicaciones
               </div>
             </div>
 
