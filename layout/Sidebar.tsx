@@ -4,12 +4,14 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, ClipboardCheck, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Home, ClipboardCheck, ChevronsLeft, ChevronsRight, Users, Building2 } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
 
 const navigation = [
   { name: 'Inicio', href: '/', icon: Home },
   { name: 'Generar Certificado', href: '/', icon: ClipboardCheck },
+  { name: 'Autores', href: '/authors', icon: Users },
+  { name: 'Departamentos', href: '/departments', icon: Building2 },
 ];
 
 const Sidebar: React.FC = () => {
@@ -57,7 +59,7 @@ const Sidebar: React.FC = () => {
       <nav className="flex-1 px-2 py-6">
         <ul className="space-y-2">
           {navigation.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
             return (
               <li key={item.name}>
                 <Link

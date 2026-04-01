@@ -1,5 +1,10 @@
 import { axiosInstance } from '@/lib/axios';
-import { Author } from '@/types/certificate';
+import type {
+  Author,
+  AuthorUpsertPayload,
+  AuthorUpsertResponse,
+  BulkUploadAuthorsResponse,
+} from '@/types/author';
 
 export const getAuthors = async (departamento?: string, facultad?: string): Promise<Author[]> => {
   try {
@@ -14,4 +19,30 @@ export const getAuthors = async (departamento?: string, facultad?: string): Prom
     console.error("Error obteniendo autores:", error);
     return [];
   }
+};
+
+export const createAuthor = async (payload: AuthorUpsertPayload): Promise<AuthorUpsertResponse> => {
+  const response = await axiosInstance.post<AuthorUpsertResponse>('/ManageAuthors', payload);
+  return response.data;
+};
+
+export const updateAuthor = async (
+  id: string,
+  payload: AuthorUpsertPayload
+): Promise<AuthorUpsertResponse> => {
+  const response = await axiosInstance.put<AuthorUpsertResponse>('/ManageAuthors', {
+    ...payload,
+    id,
+  });
+  return response.data;
+};
+
+export const bulkUploadAuthors = async (file: File): Promise<BulkUploadAuthorsResponse> => {
+  const csvContent = await file.text();
+  const response = await axiosInstance.post<BulkUploadAuthorsResponse>('/ManageAuthors', csvContent, {
+    headers: {
+      'Content-Type': 'text/csv',
+    },
+  });
+  return response.data;
 };

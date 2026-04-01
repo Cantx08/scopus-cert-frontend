@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import type { AxiosError } from 'axios';
 import { Download, Loader2, Search, FileText, ChevronRight, ChevronLeft, BarChart3, CheckCircle2, Users } from 'lucide-react';
 import { extractScopusData, generateCertificate } from '@/services/certificateApi';
-import type { GenerateCertificateRequest, ExtractScopusDataRequest, Publication, SubjectArea, Author } from '@/types/certificate';
+import type { GenerateCertificateRequest, ExtractScopusDataRequest, Publication, SubjectArea } from '@/types/certificate';
+import type { Author } from '@/types/author';
 import departamentosList from '@/departments.json';
 import cargosList from '@/positions.json';
 import { getAuthors } from '@/services/authorApi';
+import { getDepartments } from '@/services/departmentApi';
 
 interface ApiErrorPayload {
   error?: string;
@@ -42,8 +44,9 @@ export default function HomePage() {
   const [step, setStep] = useState(1);
 
   const [authors, setAuthors] = useState<Author[]>([]);
+  const [departments, setDepartments] = useState<string[]>(departamentosList);
   const [loadingAuthors, setLoadingAuthors] = useState(true);
-  const [selectedCedula, setSelectedCedula] = useState<string>('');
+  const [selectedAuthorId, setSelectedAuthorId] = useState<string>('');
 
   // Estados de interfaz
   const [loadingExtract, setLoadingExtract] = useState(false);
@@ -53,7 +56,7 @@ export default function HomePage() {
   
   const [extractedData, setExtractedData] = useState<{ publications: Publication[], subject_areas: SubjectArea[] } | null>(null);
 
-  // Estado unificado del formulario
+  // Formulario para la generación de certificados
   const [form, setForm] = useState({
     scopusIds: '',
     nombres: '',
@@ -77,18 +80,31 @@ export default function HomePage() {
   useEffect(() => {
     const fetchAuthors = async () => {
       setLoadingAuthors(true);
-      const data = await getAuthors(); // Trae todos (puedes añadir filtros aquí luego)
+      const data = await getAuthors();
       setAuthors(data);
       setLoadingAuthors(false);
     };
+
+    const fetchDepartments = async () => {
+      try {
+        const departmentsData = await getDepartments();
+        if (departmentsData.length > 0) {
+          setDepartments(departmentsData.map((department) => department.nombre));
+        }
+      } catch {
+        setDepartments(departamentosList);
+      }
+    };
+
     fetchAuthors();
+    fetchDepartments();
   }, []);
 
-  const handleAuthorSelect = (cedula: string) => {
-    setSelectedCedula(cedula);
+  const handleAuthorSelect = (authorId: string) => {
+    setSelectedAuthorId(authorId);
     setError('');
     
-    const author = authors.find(a => a.cedula === cedula);
+    const author = authors.find(a => a.id === authorId);
     if (author) {
       // Autocompletamos todo el formulario con los datos de la base de datos
       setForm(prev => ({
@@ -131,8 +147,8 @@ export default function HomePage() {
         subject_areas: response.subject_areas
       });
       setResultMessage(`${response.mensaje}. Publicaciones detectadas: ${response.total_publicaciones}.`);
-    } catch (requestError: any) {
-      setError(requestError.response?.data?.error || requestError.message || 'No se pudieron extraer los datos.');
+    } catch (requestError: unknown) {
+      setError(getErrorMessage(requestError, 'No se pudieron extraer los datos.'));
     } finally {
       setLoadingExtract(false);
     }
@@ -186,11 +202,6 @@ export default function HomePage() {
     }
   };
 
-  const maxSubjectCount = useMemo(() => {
-    if (!extractedData?.subject_areas) return 0;
-    return Math.max(...extractedData.subject_areas.map((area: any) => area.count || area.cantidad || area.value || 0));
-  }, [extractedData]);
-
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">
       {/* Encabezado Principal */}
@@ -241,14 +252,14 @@ export default function HomePage() {
               <label className="space-y-1.5 flex-1 w-full">
                 <span className="text-sm font-medium text-neutral-700">Lista de Docentes</span>
                 <select
-                  value={selectedCedula}
+                  value={selectedAuthorId}
                   onChange={(e) => handleAuthorSelect(e.target.value)}
                   disabled={loadingAuthors}
                   className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white disabled:bg-neutral-50"
                 >
                   <option value=""> Seleccione un docente... </option>
                   {authors.map((author) => (
-                    <option key={author.cedula} value={author.cedula}>
+                    <option key={author.id} value={author.id}>
                       {author.apellidos} {author.nombres}
                     </option>
                   ))}
@@ -257,7 +268,7 @@ export default function HomePage() {
               
               <button
                 onClick={handleExtract}
-                disabled={loadingExtract || !selectedCedula}
+                disabled={loadingExtract || !selectedAuthorId}
                 className="w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-lg bg-primary-500 px-8 py-2.5 text-white font-medium hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors h-[46px]"
               >
                 {loadingExtract ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-4 w-4" />}
@@ -266,7 +277,7 @@ export default function HomePage() {
             </div>
             
             {/* Indicador de Scopus IDs correspondientes al autor */}
-            {selectedCedula && form.scopusIds && (
+            {selectedAuthorId && form.scopusIds && (
                <div className="mt-3 text-xs text-neutral-500 flex items-center gap-1">
                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                  Scopus IDs: {form.scopusIds}
@@ -398,7 +409,7 @@ export default function HomePage() {
                     required
                   >
                     <option value="" disabled>Seleccione un departamento...</option>
-                    {departamentosList.map((dept, index) => (
+                    {departments.map((dept, index) => (
                       <option key={index} value={dept}>{dept}</option>
                     ))}
                   </select>

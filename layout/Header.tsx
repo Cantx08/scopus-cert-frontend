@@ -7,11 +7,27 @@ const Header: React.FC = () => {
   const pathname = usePathname();
 
   const getPageTitle = () => {
-    const routes: { [key: string]: string } = {
-      '/': 'Inicio',
-      '/generator': 'Generador',
-    };
-    return routes[pathname] || 'Sistema de Certificados';
+    if (pathname === '/') {
+      return 'Generador de Certificados';
+    }
+
+    if (pathname === '/authors') {
+      return 'Gestión de Autores';
+    }
+
+    if (pathname === '/authors/new') {
+      return 'Nuevo Autor';
+    }
+
+    if (pathname.startsWith('/authors/')) {
+      return 'Editar Autor';
+    }
+
+    if (pathname === '/departments') {
+      return 'Departamentos';
+    }
+
+    return 'Sistema de Certificados';
   };
 
   return (
