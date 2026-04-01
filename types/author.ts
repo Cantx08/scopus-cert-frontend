@@ -29,3 +29,8 @@ export interface AuthorUpsertResponse {
 export interface BulkUploadAuthorsResponse {
   mensaje: string;
 }
+
+export interface DeleteAuthorResponse {
+  mensaje?: string;
+  error?: string;
+}

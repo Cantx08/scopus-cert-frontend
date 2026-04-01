@@ -4,6 +4,7 @@ import type {
   AuthorUpsertPayload,
   AuthorUpsertResponse,
   BulkUploadAuthorsResponse,
+  DeleteAuthorResponse,
 } from '@/types/author';
 
 export const getAuthors = async (departamento?: string, facultad?: string): Promise<Author[]> => {
@@ -44,5 +45,11 @@ export const bulkUploadAuthors = async (file: File): Promise<BulkUploadAuthorsRe
       'Content-Type': 'text/csv',
     },
   });
+  return response.data;
+};
+
+export const deleteAuthor = async (id: string): Promise<DeleteAuthorResponse> => {
+  const encodedId = encodeURIComponent(id);
+  const response = await axiosInstance.delete<DeleteAuthorResponse>(`/ManageAuthors?id=${encodedId}`);
   return response.data;
 };

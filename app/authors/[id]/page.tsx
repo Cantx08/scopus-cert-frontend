@@ -4,9 +4,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import AuthorForm, { AuthorFormValues } from '@/components/authors/AuthorForm';
+import cargosList from '@/positions.json';
 import { getAuthors, updateAuthor } from '@/services/authorApi';
 import { getDepartments } from '@/services/departmentApi';
 import { getFaculties } from '@/services/facultyApi';
+import { getJobPositions } from '@/services/jobPositionApi';
 import type { Department } from '@/types/department';
 import type { Faculty } from '@/types/faculty';
 import type { Author } from '@/types/author';
@@ -21,6 +23,7 @@ export default function EditAuthorPage() {
   const [error, setError] = useState('');
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [jobPositions, setJobPositions] = useState<string[]>([]);
   const [initialValues, setInitialValues] = useState<AuthorFormValues | null>(null);
 
   useEffect(() => {
@@ -49,6 +52,12 @@ export default function EditAuthorPage() {
 
         setFaculties(facultiesData);
         setDepartments(departmentsData);
+        try {
+          const jobPositionsData = await getJobPositions();
+          setJobPositions(jobPositionsData.map((jobPosition) => jobPosition.nombre));
+        } catch {
+          setJobPositions(cargosList);
+        }
         setInitialValues({
           nombres: author.nombres,
           apellidos: author.apellidos,
@@ -105,6 +114,7 @@ export default function EditAuthorPage() {
       initialValues={initialValues}
       faculties={faculties}
       departments={departments}
+      jobPositions={jobPositions}
       onSubmit={handleSubmit}
     />
   );

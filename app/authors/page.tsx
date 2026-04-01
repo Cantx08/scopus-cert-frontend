@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Upload, Loader2, UserRoundPen } from 'lucide-react';
-import { bulkUploadAuthors, getAuthors } from '@/services/authorApi';
+import { Plus, Search, Upload, Loader2, UserRoundPen, Trash2 } from 'lucide-react';
+import { bulkUploadAuthors, deleteAuthor, getAuthors } from '@/services/authorApi';
 import { getFaculties } from '@/services/facultyApi';
 import { getDepartments } from '@/services/departmentApi';
 import type { Author } from '@/types/author';
@@ -17,6 +17,7 @@ export default function AuthorsPage() {
 
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string>('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
@@ -98,6 +99,27 @@ export default function AuthorsPage() {
     } finally {
       setImporting(false);
       event.target.value = '';
+    }
+  };
+
+  const handleDeleteAuthor = async (authorId: string, authorName: string) => {
+    const shouldDelete = window.confirm(`Se eliminara el autor ${authorName}. Desea continuar?`);
+    if (!shouldDelete) {
+      return;
+    }
+
+    setDeletingId(authorId);
+    setError('');
+    setMessage('');
+
+    try {
+      const result = await deleteAuthor(authorId);
+      setMessage(result.mensaje || 'Autor eliminado correctamente.');
+      await fetchData();
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'No se pudo eliminar el autor.');
+    } finally {
+      setDeletingId('');
     }
   };
 
@@ -229,7 +251,7 @@ export default function AuthorsPage() {
                       <td className="px-4 py-3 text-sm text-neutral-700">{author.cargo || '-'}</td>
                       <td className="px-4 py-3 text-sm text-neutral-700">{author.scopus_ids || '-'}</td>
                       <td className="px-4 py-3">
-                        <div className="flex justify-end">
+                        <div className="flex justify-end gap-2">
                           <Link
                             href={`/authors/${author.id}`}
                             className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
@@ -237,6 +259,19 @@ export default function AuthorsPage() {
                             <UserRoundPen className="h-3.5 w-3.5" />
                             Editar
                           </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAuthor(author.id, `${author.apellidos} ${author.nombres}`.trim())}
+                            disabled={deletingId === author.id}
+                            className="inline-flex items-center gap-2 rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {deletingId === author.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3.5 w-3.5" />
+                            )}
+                            Eliminar
+                          </button>
                         </div>
                       </td>
                     </tr>

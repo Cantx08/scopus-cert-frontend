@@ -10,6 +10,7 @@ import departamentosList from '@/departments.json';
 import cargosList from '@/positions.json';
 import { getAuthors } from '@/services/authorApi';
 import { getDepartments } from '@/services/departmentApi';
+import { getJobPositions } from '@/services/jobPositionApi';
 
 interface ApiErrorPayload {
   error?: string;
@@ -45,6 +46,7 @@ export default function HomePage() {
 
   const [authors, setAuthors] = useState<Author[]>([]);
   const [departments, setDepartments] = useState<string[]>(departamentosList);
+  const [jobPositions, setJobPositions] = useState<string[]>([]);
   const [loadingAuthors, setLoadingAuthors] = useState(true);
   const [selectedAuthorId, setSelectedAuthorId] = useState<string>('');
 
@@ -96,8 +98,18 @@ export default function HomePage() {
       }
     };
 
+    const fetchJobPositions = async () => {
+      try {
+        const jobPositionsData = await getJobPositions();
+        setJobPositions(jobPositionsData.map((jobPosition) => jobPosition.nombre));
+      } catch {
+        setJobPositions(cargosList);
+      }
+    };
+
     fetchAuthors();
     fetchDepartments();
+    fetchJobPositions();
   }, []);
 
   const handleAuthorSelect = (authorId: string) => {
@@ -270,7 +282,7 @@ export default function HomePage() {
               <button
                 onClick={handleExtract}
                 disabled={loadingExtract || !selectedAuthorId}
-                className="w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-lg bg-primary-500 px-8 py-2.5 text-white font-medium hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors h-[46px]"
+                className="w-full md:w-auto inline-flex justify-center items-center gap-2 rounded-lg bg-primary-500 px-8 py-2.5 text-white font-medium hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors h-11.5"
               >
                 {loadingExtract ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-4 w-4" />}
                 {loadingExtract ? 'Buscando...' : 'Extraer Publicaciones'}
@@ -425,8 +437,8 @@ export default function HomePage() {
                     required
                   >
                     <option value="" disabled>Seleccione un cargo...</option>
-                    {cargosList.map((position, index) => (
-                      <option key={index} value={position}>{position}</option>
+                    {jobPositions.map((position) => (
+                      <option key={position} value={position}>{position}</option>
                     ))}
                   </select>
                 </label>

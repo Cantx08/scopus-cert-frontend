@@ -3,7 +3,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { Save, ArrowLeft, Loader2 } from 'lucide-react';
-import cargosList from '@/positions.json';
 import type { Department } from '@/types/department';
 import type { Faculty } from '@/types/faculty';
 
@@ -26,6 +25,7 @@ interface AuthorFormProps {
   initialValues: AuthorFormValues;
   faculties: Faculty[];
   departments: Department[];
+  jobPositions: string[];
   onSubmit: (values: AuthorFormValues) => Promise<void>;
 }
 
@@ -37,6 +37,7 @@ export default function AuthorForm({
   initialValues,
   faculties,
   departments,
+  jobPositions,
   onSubmit,
 }: AuthorFormProps) {
   const [formData, setFormData] = useState<AuthorFormValues>(initialValues);
@@ -184,8 +185,8 @@ export default function AuthorForm({
               className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 outline-none transition-shadow focus:ring-2 focus:ring-primary-300"
             >
               <option value="">Seleccione un cargo...</option>
-              {cargosList.map((position, index) => (
-                <option key={index} value={position}>
+              {jobPositions.map((position) => (
+                <option key={position} value={position}>
                   {position}
                 </option>
               ))}
