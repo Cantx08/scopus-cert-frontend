@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Upload, Loader2, UserRoundPen, Trash2 } from 'lucide-react';
+import { Plus, Search, Upload, Loader2, UserRoundPen, Trash2, Users } from 'lucide-react';
 import { bulkUploadAuthors, deleteAuthor, getAuthors } from '@/services/authorApi';
 import { getFaculties } from '@/services/facultyApi';
 import { getDepartments } from '@/services/departmentApi';
@@ -127,12 +127,9 @@ export default function AuthorsPage() {
     <div className="mx-auto max-w-7xl space-y-6">
       <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
+          <div className="flex gap-3">
+            <Users className="h-6 w-6 text-primary-600" />
             <h2 className="text-2xl font-bold text-neutral-900">Gestión de Autores</h2>
-            <p className="mt-1 text-sm text-neutral-600">Listado, edición e importación masiva de autores.</p>
-            <p className="mt-1 text-xs text-neutral-500">
-              CSV soportado: Id (opcional), Nombres, Apellidos, Genero, Titulo, Cargo, Departamento, Facultad, ScopusIds.
-            </p>
           </div>
           <div className="flex gap-3">
             <input
@@ -147,7 +144,7 @@ export default function AuthorsPage() {
               className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary-200 bg-primary-50 px-4 py-2.5 text-sm font-medium text-primary-700 hover:bg-primary-100"
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              {importing ? 'Importando...' : 'Importar CSV'}
+              {importing ? 'Importando...' : 'Importar Autores'}
             </label>
 
             <Link
@@ -155,7 +152,7 @@ export default function AuthorsPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700"
             >
               <Plus className="h-4 w-4" />
-              Nuevo Autor
+              Agregar Autor
             </Link>
           </div>
         </div>

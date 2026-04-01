@@ -54,8 +54,7 @@ export default function DepartmentsPage() {
         <div className="flex items-center gap-3">
           <Building2 className="h-6 w-6 text-primary-600" />
           <div>
-            <h2 className="text-2xl font-bold text-neutral-900">Departamentos</h2>
-            <p className="text-sm text-neutral-600">Consulta departamentos y su facultad asociada.</p>
+            <h2 className="text-2xl font-bold text-neutral-900">Gestión de Departamentos</h2>
           </div>
         </div>
       </section>
