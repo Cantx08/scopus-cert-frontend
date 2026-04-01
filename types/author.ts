@@ -3,6 +3,7 @@ export interface Author {
   nombres: string;
   apellidos: string;
   titulo: string;
+  genero: string;
   cargo: string;
   departamento: string;
   facultad: string;
@@ -13,6 +14,7 @@ export interface AuthorUpsertPayload {
   nombres: string;
   apellidos: string;
   titulo?: string;
+  genero?: string;
   cargo?: string;
   departamento?: string;
   facultad?: string;

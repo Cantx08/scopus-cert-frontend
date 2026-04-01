@@ -9,9 +9,9 @@ import { useSidebar } from '@/contexts/SidebarContext';
 
 const navigation = [
   { name: 'Inicio', href: '/', icon: Home },
-  { name: 'Generar Certificado', href: '/', icon: ClipboardCheck },
   { name: 'Autores', href: '/authors', icon: Users },
   { name: 'Departamentos', href: '/departments', icon: Building2 },
+  { name: 'Generar Certificados', href: '/', icon: ClipboardCheck },
 ];
 
 const Sidebar: React.FC = () => {

@@ -113,13 +113,14 @@ export default function HomePage() {
         nombres: author.nombres || '',
         apellidos: author.apellidos || '',
         titulo: author.titulo || '',
+        genero: author.genero || 'M',
         departamento: author.departamento || '',
         cargo: author.cargo || '',
       }));
     } else {
       // Si deselecciona, limpiamos
       setForm(prev => ({
-        ...prev, scopusIds: '', nombres: '', apellidos: '', titulo: '', departamento: '', cargo: ''
+        ...prev, scopusIds: '', nombres: '', apellidos: '', titulo: '', genero: 'M', departamento: '', cargo: ''
       }));
     }
   };

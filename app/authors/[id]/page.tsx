@@ -53,6 +53,7 @@ export default function EditAuthorPage() {
           nombres: author.nombres,
           apellidos: author.apellidos,
           titulo: author.titulo || '',
+          genero: author.genero || 'M',
           cargo: author.cargo || '',
           facultad: author.facultad || '',
           departamento: author.departamento || '',

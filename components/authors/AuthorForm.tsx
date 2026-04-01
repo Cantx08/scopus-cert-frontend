@@ -11,6 +11,7 @@ export interface AuthorFormValues {
   nombres: string;
   apellidos: string;
   titulo: string;
+  genero: string;
   cargo: string;
   facultad: string;
   departamento: string;
@@ -118,6 +119,18 @@ export default function AuthorForm({
               onChange={(e) => handleChange('nombres', e.target.value)}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 outline-none transition-shadow focus:ring-2 focus:ring-primary-300"
             />
+          </label>
+
+          <label className="space-y-1.5">
+            <span className="text-sm font-medium text-neutral-700">Genero</span>
+            <select
+              value={formData.genero}
+              onChange={(e) => handleChange('genero', e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 outline-none transition-shadow focus:ring-2 focus:ring-primary-300"
+            >
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+            </select>
           </label>
 
           <label className="space-y-1.5">

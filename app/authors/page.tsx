@@ -62,6 +62,7 @@ export default function AuthorsPage() {
         !searchValue ||
         author.nombres.toLowerCase().includes(searchValue) ||
         author.apellidos.toLowerCase().includes(searchValue) ||
+        author.genero.toLowerCase().includes(searchValue) ||
         author.cargo.toLowerCase().includes(searchValue) ||
         author.departamento.toLowerCase().includes(searchValue);
 
@@ -107,6 +108,9 @@ export default function AuthorsPage() {
           <div>
             <h2 className="text-2xl font-bold text-neutral-900">Gestión de Autores</h2>
             <p className="mt-1 text-sm text-neutral-600">Listado, edición e importación masiva de autores.</p>
+            <p className="mt-1 text-xs text-neutral-500">
+              CSV soportado: Id (opcional), Nombres, Apellidos, Genero, Titulo, Cargo, Departamento, Facultad, ScopusIds.
+            </p>
           </div>
           <div className="flex gap-3">
             <input
@@ -205,6 +209,7 @@ export default function AuthorsPage() {
                 <thead className="bg-neutral-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">Autor</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">Genero</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">Facultad</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">Departamento</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">Cargo</th>
@@ -218,6 +223,7 @@ export default function AuthorsPage() {
                       <td className="px-4 py-3 text-sm text-neutral-800">
                         {author.apellidos} {author.nombres}
                       </td>
+                      <td className="px-4 py-3 text-sm text-neutral-700">{author.genero === 'F' ? 'Femenino' : 'Masculino'}</td>
                       <td className="px-4 py-3 text-sm text-neutral-700">{author.facultad || '-'}</td>
                       <td className="px-4 py-3 text-sm text-neutral-700">{author.departamento || '-'}</td>
                       <td className="px-4 py-3 text-sm text-neutral-700">{author.cargo || '-'}</td>
@@ -237,7 +243,7 @@ export default function AuthorsPage() {
                   ))}
                   {filteredAuthors.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-sm text-neutral-500">
+                      <td colSpan={7} className="px-4 py-8 text-center text-sm text-neutral-500">
                         No se encontraron autores con los filtros actuales.
                       </td>
                     </tr>

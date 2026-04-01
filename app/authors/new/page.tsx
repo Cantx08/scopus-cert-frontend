@@ -13,6 +13,7 @@ const initialValues: AuthorFormValues = {
   nombres: '',
   apellidos: '',
   titulo: '',
+  genero: 'M',
   cargo: '',
   facultad: '',
   departamento: '',
