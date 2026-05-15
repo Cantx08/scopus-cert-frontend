@@ -57,21 +57,34 @@ export default function AuthorsPage() {
 
   const filteredAuthors = useMemo(() => {
     const searchValue = search.toLowerCase().trim();
+    const collator = new Intl.Collator('es', { sensitivity: 'base' });
+    const normalizeName = (value: string) => value.trim();
 
-    return authors.filter((author) => {
-      const matchesSearch =
-        !searchValue ||
-        author.nombres.toLowerCase().includes(searchValue) ||
-        author.apellidos.toLowerCase().includes(searchValue) ||
-        author.genero.toLowerCase().includes(searchValue) ||
-        author.cargo.toLowerCase().includes(searchValue) ||
-        author.departamento.toLowerCase().includes(searchValue);
+    return authors
+      .filter((author) => {
+        const matchesSearch =
+          !searchValue ||
+          author.nombres.toLowerCase().includes(searchValue) ||
+          author.apellidos.toLowerCase().includes(searchValue) ||
+          author.genero.toLowerCase().includes(searchValue) ||
+          author.cargo.toLowerCase().includes(searchValue) ||
+          author.departamento.toLowerCase().includes(searchValue);
 
-      const matchesFaculty = selectedFaculty === 'all' || author.facultad === selectedFaculty;
-      const matchesDepartment = selectedDepartment === 'all' || author.departamento === selectedDepartment;
+        const matchesFaculty = selectedFaculty === 'all' || author.facultad === selectedFaculty;
+        const matchesDepartment = selectedDepartment === 'all' || author.departamento === selectedDepartment;
 
-      return matchesSearch && matchesFaculty && matchesDepartment;
-    });
+        return matchesSearch && matchesFaculty && matchesDepartment;
+      })
+      .sort((authorA, authorB) => {
+        const lastNameComparison = collator.compare(
+          normalizeName(authorA.apellidos),
+          normalizeName(authorB.apellidos)
+        );
+        if (lastNameComparison !== 0) {
+          return lastNameComparison;
+        }
+        return collator.compare(normalizeName(authorA.nombres), normalizeName(authorB.nombres));
+      });
   }, [authors, search, selectedFaculty, selectedDepartment]);
 
   const handleCsvImport = async (event: React.ChangeEvent<HTMLInputElement>) => {

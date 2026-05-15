@@ -112,6 +112,22 @@ export default function HomePage() {
     fetchJobPositions();
   }, []);
 
+  const sortedAuthors = useMemo(() => {
+    const collator = new Intl.Collator('es', { sensitivity: 'base' });
+    const normalizeName = (value: string) => value.trim();
+
+    return [...authors].sort((authorA, authorB) => {
+      const lastNameComparison = collator.compare(
+        normalizeName(authorA.apellidos),
+        normalizeName(authorB.apellidos)
+      );
+      if (lastNameComparison !== 0) {
+        return lastNameComparison;
+      }
+      return collator.compare(normalizeName(authorA.nombres), normalizeName(authorB.nombres));
+    });
+  }, [authors]);
+
   const handleAuthorSelect = (authorId: string) => {
     setSelectedAuthorId(authorId);
     setError('');
@@ -271,7 +287,7 @@ export default function HomePage() {
                   className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white disabled:bg-neutral-50"
                 >
                   <option value=""> Seleccione un docente... </option>
-                  {authors.map((author) => (
+                  {sortedAuthors.map((author) => (
                     <option key={author.id} value={author.id}>
                       {author.apellidos} {author.nombres}
                     </option>
